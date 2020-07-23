@@ -13,7 +13,7 @@ One solution would be to use AWS Discovery service.
 
 ## AWS network architecture
 
-![Drag Racing](images/diagram.jpg)
+![AWS network architecture](images/diagram.png)
 
 ## Start the project
 
