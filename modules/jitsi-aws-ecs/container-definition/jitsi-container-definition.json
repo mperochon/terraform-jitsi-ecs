@@ -1,0 +1,190 @@
+[
+    {
+        "name": "web",
+        "image": "jitsi/web:latest",
+        "links": [
+            "prosody:xmpp.meet.jitsi"
+        ],
+        "memory": 512,
+        "portMappings": [
+            {
+                "containerPort": 443,
+                "protocol": "tcp"
+            }
+        ],
+        "environmentFiles": [
+            {
+                "value": "${S3_WEB_ENV_FILE_PATH}",
+                "type": "s3"
+            }
+        ],
+        "mountPoints": [
+            {
+                "sourceVolume": "web-storage",
+                "containerPath": "/config"
+            },
+            {
+                "sourceVolume": "web-transcripts-storage",
+                "containerPath": "/usr/share/jitsi-meet/transcripts"
+            }
+        ],
+        "ulimits": [
+            {
+                "softLimit": 65000,
+                "hardLimit": 65000,
+                "name": "nofile"
+            },
+            {
+                "softLimit": 65000,
+                "hardLimit": 65000,
+                "name": "nproc"
+            }
+        ],
+        "logConfiguration": {
+            "logDriver": "awslogs",
+            "options": {
+                "awslogs-group": "ecs-svc-jitsi-web",
+                "awslogs-region": "${AWS_REGION}"
+            }
+        }
+    },
+    {
+        "name": "prosody",
+        "hostname": "xmpp.meet.jitsi",
+        "memory": 1024,
+        "image": "jitsi/prosody:latest",
+        "environmentFiles": [
+            {
+                "value": "${S3_PROSODY_ENV_FILE_PATH}",
+                "type": "s3"
+            }
+        ],
+        "mountPoints": [
+            {
+                "sourceVolume": "prosody-storage",
+                "containerPath": "/config"
+            },
+            {
+                "sourceVolume": "prosody-plugins-storage",
+                "containerPath": "/prosody-plugins-custom"
+            }
+        ],
+        "ulimits": [
+            {
+                "softLimit": 65000,
+                "hardLimit": 65000,
+                "name": "nofile"
+            },
+            {
+                "softLimit": 65000,
+                "hardLimit": 65000,
+                "name": "nproc"
+            }
+        ],
+        "logConfiguration": {
+            "logDriver": "awslogs",
+            "options": {
+                "awslogs-group": "ecs-svc-jitsi-prosody",
+                "awslogs-region": "${AWS_REGION}"
+            }
+        }
+    },
+    {
+        "name": "jicofo",
+        "links": [
+            "prosody:xmpp.meet.jitsi"
+        ],
+        "memory": 1024,
+        "image": "jitsi/jicofo:latest",
+        "environmentFiles": [
+            {
+                "value": "${S3_JICOFO_ENV_FILE_PATH}",
+                "type": "s3"
+            }
+        ],
+        "dependsOn": [
+            {
+                "containerName": "prosody",
+                "condition": "START"
+            }
+        ],
+        "mountPoints": [
+            {
+                "sourceVolume": "jicofo-storage",
+                "containerPath": "/config"
+            }
+        ],
+        "ulimits": [
+            {
+                "softLimit": 65000,
+                "hardLimit": 65000,
+                "name": "nofile"
+            },
+            {
+                "softLimit": 65000,
+                "hardLimit": 65000,
+                "name": "nproc"
+            }
+        ],
+        "logConfiguration": {
+            "logDriver": "awslogs",
+            "options": {
+                "awslogs-group": "ecs-svc-jitsi-jicofo",
+                "awslogs-region": "${AWS_REGION}"
+            }
+        }
+    },
+    {
+        "name": "jvb",
+        "links": [
+            "prosody:xmpp.meet.jitsi"
+        ],
+        "memory": 4096,
+        "image": "jitsi/jvb:latest",
+        "environmentFiles": [
+            {
+                "value": "${S3_JVB_ENV_FILE_PATH}",
+                "type": "s3"
+            }
+        ],
+        "portMappings": [
+            {
+                "containerPort": 10000,
+                "hostPort": 10000,
+                "protocol": "udp"
+            }
+        ],
+        "dependsOn": [
+            {
+                "containerName": "prosody",
+                "condition": "START"
+            }
+        ],
+        "mountPoints": [
+            {
+                "sourceVolume": "jvb-storage",
+                "containerPath": "/config"
+            }
+        ],
+        "ulimits": [
+            {
+                "softLimit": 65000,
+                "hardLimit": 65000,
+                "name": "nofile"
+            },
+            {
+                "softLimit": 65000,
+                "hardLimit": 65000,
+                "name": "nproc"
+            }
+        ],
+        "logConfiguration": {
+            "logDriver": "awslogs",
+            "options": {
+                "awslogs-group": "ecs-svc-jitsi-jvb",
+                "awslogs-region": "${AWS_REGION}"
+            }
+        }
+        
+    }
+]
